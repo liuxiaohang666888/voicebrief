@@ -105,6 +105,16 @@
   </div>
 </section>
 
+<section class="wrap">
+  <h2 style="text-align:center">Pricing</h2>
+  <div class="card" style="text-align:center;max-width:460px;margin:18px auto">
+    <p style="color:var(--muted);font-size:17px;margin-top:0">Unlimited voice notes, transcripts, action items, and reply drafts.</p>
+    <p style="font-size:38px;font-weight:700;margin:8px 0">$19<span style="font-size:16px;color:var(--muted)"> / month</span></p>
+    <p style="color:var(--muted);margin-bottom:6px">Cancel anytime · first 3 audio clips free, no card needed</p>
+    <div id="paypal-button-container-P-16V273775J018745HNJ6WGAI" style="margin-top:14px;max-width:300px;margin-left:auto;margin-right:auto"></div>
+  </div>
+</section>
+
 <footer class="wrap">
   VoiceBrief — a tiny tool for freelancers buried in client voice notes.<br>
   Beta is free. Feedback? Just reply to whoever sent you the link.
@@ -165,6 +175,17 @@ goBtn.addEventListener('click', async () => {
   const apiUrl = (document.getElementById('api').value.trim() || '').replace(/\/$/, '') + '/process';
   if(!document.getElementById('api').value.trim()){ setStatus('Paste the VoiceBrief backend URL first (see the note above).', true); return; }
   if(!chosenFile){ setStatus('Choose an audio file first.', true); return; }
+
+  // paywall: 3 free uses unless subscribed
+  const paid = localStorage.getItem('vb_paid');
+  const used = parseInt(localStorage.getItem('vb_uses') || '0', 10);
+  if(!paid && used >= 3){
+    setStatus('Free limit reached — subscribe $19/mo for unlimited (button below).', true);
+    const pc = document.getElementById('paypal-button-container-P-16V273775J018745HNJ6WGAI');
+    if(pc) pc.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+
   goBtn.disabled = true;
   try{
     setStatus('Reading audio…');
@@ -177,7 +198,9 @@ goBtn.addEventListener('click', async () => {
     (out.action_items||[]).forEach(it=>{ const li=document.createElement('li'); li.textContent=it; ul.appendChild(li); });
     document.getElementById('reply').textContent = out.reply_draft || '';
     document.getElementById('result').style.display='block';
-    setStatus('Done.');
+    const newUsed = used + 1;
+    localStorage.setItem('vb_uses', String(newUsed));
+    setStatus('Done. ' + (paid ? '' : 'Free uses left: ' + Math.max(0, 3 - newUsed) + '.'));
   }catch(err){
     setStatus(err.message, true);
   }finally{
@@ -189,6 +212,22 @@ document.getElementById('copyReply').addEventListener('click', () => {
   const t = document.getElementById('reply').textContent;
   navigator.clipboard.writeText(t).then(()=>{ setStatus('Reply copied.'); });
 });
+</script>
+<script src="https://www.paypal.com/sdk/js?client-id=BAAxyItsTaXijHpq8NBvrle3h6xOpEJ9vc1nl_OvLlwnfe_OoFH8Uz3tGTs9x-p-nI88xGGROfurcvVyig&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+<script>
+  if (window.paypal) {
+    paypal.Buttons({
+      style: { shape: 'rect', color: 'gold', layout: 'vertical', label: 'subscribe' },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({ plan_id: 'P-16V273775J018745HNJ6WGAI' });
+      },
+      onApprove: function(data, actions) {
+        localStorage.setItem('vb_paid', '1');
+        alert('Thanks for subscribing! You now have unlimited access.');
+        location.reload();
+      }
+    }).render('#paypal-button-container-P-16V273775J018745HNJ6WGAI');
+  }
 </script>
 </body>
 </html>
