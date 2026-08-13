@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoiceBrief — Voice notes & calls turned into action</title>
+<style>
+  :root{
+    --bg:#0b0f17; --panel:#121826; --line:#1f2a3a; --txt:#e7ecf3;
+    --muted:#9aa7b8; --accent:#4f8cff; --accent2:#22c55e; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{padding:22px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+  .logo{font-weight:800;font-size:20px;letter-spacing:-.5px}
+  .logo span{color:var(--accent)}
+  nav a{color:var(--muted);margin-left:18px;font-size:14px}
+  .hero{padding:70px 0 50px;text-align:center}
+  .badge{display:inline-block;background:rgba(79,140,255,.12);color:var(--accent);
+    border:1px solid rgba(79,140,255,.3);padding:5px 12px;border-radius:999px;font-size:13px;margin-bottom:20px}
+  h1{font-size:44px;line-height:1.15;letter-spacing:-1px;margin-bottom:18px}
+  h1 em{font-style:normal;color:var(--accent)}
+  .sub{font-size:19px;color:var(--muted);max-width:620px;margin:0 auto 30px}
+  .price-line{font-size:16px;color:var(--txt);margin-bottom:28px}
+  .price-line b{color:var(--accent2)}
+  .cta{display:inline-block;background:var(--accent);color:#fff;padding:14px 28px;border-radius:10px;
+    font-weight:700;font-size:16px;transition:.15s}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,140,255,.35)}
+  .steps{padding:50px 0;border-top:1px solid var(--line)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+  .card h3{font-size:17px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:14px}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;
+    background:var(--accent);color:#fff;border-radius:8px;font-weight:700;margin-bottom:14px}
+  .out{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:36px;margin:30px 0}
+  .out h2{font-size:26px;margin-bottom:24px;text-align:center;letter-spacing:-.5px}
+  .out .grid3 .card{border-color:rgba(34,197,94,.25)}
+  .pricing{padding:50px 0;border-top:1px solid var(--line);text-align:center}
+  .price-big{font-size:64px;font-weight:800;letter-spacing:-2px}
+  .price-big small{font-size:20px;color:var(--muted);font-weight:500}
+  .pricing p{color:var(--muted);margin-top:8px}
+  .free-tag{display:inline-block;background:rgba(34,197,94,.12);color:var(--accent2);
+    border:1px solid rgba(34,197,94,.3);padding:6px 14px;border-radius:999px;font-size:14px;margin-top:18px;font-weight:600}
+  .faq{padding:50px 0;border-top:1px solid var(--line)}
+  .faq h2{font-size:26px;margin-bottom:24px;text-align:center}
+  .qa{max-width:680px;margin:0 auto 16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 22px}
+  .qa b{color:var(--txt)}
+  .qa p{color:var(--muted);font-size:14px;margin-top:6px}
+  .cta-section{padding:60px 0 80px;text-align:center;border-top:1px solid var(--line)}
+  .cta-section h2{font-size:30px;margin-bottom:14px;letter-spacing:-.5px}
+  .cta-section p{color:var(--muted);margin-bottom:26px}
+  footer{padding:30px 0;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
+  @media(max-width:720px){.grid3{grid-template-columns:1fr}h1{font-size:32px}.sub{font-size:17px}nav{display:none}}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <div class="logo">Voice<span>Brief</span></div>
+  <nav>
+    <a href="#how">How it works</a>
+    <a href="#out">What you get</a>
+    <a href="#pricing">Pricing</a>
+  </nav>
+</header>
+
+<section class="hero wrap">
+  <div class="badge">Pay per audio · No subscription</div>
+  <h1>Voice notes &amp; client calls,<br>turned into <em>action</em>.</h1>
+  <p class="sub">Send any audio — a voice memo, a client call, a meeting. Get back a clean transcript, a task list, and a reply draft in your own tone.</p>
+  <p class="price-line">$5 per audio. <b>First 5 are free</b> — we're testing, you win.</p>
+  <a class="cta" href="#get">Get your first one free →</a>
+</section>
+
+<section class="steps wrap" id="how">
+  <div class="grid3">
+    <div class="card">
+      <div class="num">1</div>
+      <h3>Upload your audio</h3>
+      <p>A voice message from a client, a recorded call, a meeting recap. mp3, m4a, wav — whatever you have.</p>
+    </div>
+    <div class="card">
+      <div class="num">2</div>
+      <h3>We process it</h3>
+      <p>Transcription plus AI extraction of what actually needs doing — no wall of text, just the signal.</p>
+    </div>
+    <div class="card">
+      <div class="num">3</div>
+      <h3>You get it back</h3>
+      <p>A full transcript, a checklist of action items, and a reply draft you can send as-is.</p>
+    </div>
+  </div>
+</section>
+
+<section class="out wrap" id="out">
+  <h2>What you get, every time</h2>
+  <div class="grid3">
+    <div class="card">
+      <h3>① Full transcript</h3>
+      <p>Clean, searchable, formatted. The raw words without the "um"s and dead air.</p>
+    </div>
+    <div class="card">
+      <h3>② Action-item checklist</h3>
+      <p>What needs doing, by when, by whom. No fluff, no guessing what the client actually wanted.</p>
+    </div>
+    <div class="card">
+      <h3>③ Reply draft in your tone</h3>
+      <p>A message back to the client or colleague, ready to send. Sounds like you, not like a robot.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pricing wrap" id="pricing">
+  <div class="price-big">$5<small> / audio</small></div>
+  <p>Pay per use. No monthly fee. No tier trap.</p>
+  <div class="free-tag">First 5 audits free — help us validate, keep the output</div>
+</section>
+
+<section class="faq wrap">
+  <h2>Questions</h2>
+  <div class="qa"><b>Why not just Otter or Whisper?</b><p>They give you a wall of text. VoiceBrief gives you what to <i>do</i> next and what to <i>say</i> back. That's the difference between a transcript and getting your time back.</p></div>
+  <div class="qa"><b>How fast?</b><p>Usually within a few hours. The free test batches daily.</p></div>
+  <div class="qa"><b>Is my audio private?</b><p>Yes. Processed per request, never used for training, never shared.</p></div>
+  <div class="qa"><b>What if it's not useful?</b><p>Then tell us why and we learn. The first 5 are free precisely so you can judge with zero risk.</p></div>
+</section>
+
+<section class="cta-section wrap" id="get">
+  <h2>Send your first audio — free</h2>
+  <p>Drop an audio file and we'll return the transcript + tasks + reply. No card, no catch.</p>
+  <a class="cta" href="mailto:3886136362@qq.com?subject=VoiceBrief%20free%20test">Email your audio →</a>
+  <p style="margin-top:18px;font-size:13px">Subject: <b>VoiceBrief free test</b> · We reply within a day during the free test.</p>
+</section>
+
+<footer class="wrap">
+  VoiceBrief — a pay-per-audio micro-service. Validating demand, Aug 2026.
+</footer>
+</body>
+</html>
