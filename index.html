@@ -49,10 +49,18 @@
   .feat h3{color:var(--accent);font-size:16px;margin:0 0 6px}
   footer{padding:34px 0 60px;color:var(--muted);font-size:13px;text-align:center;border-top:1px solid var(--line);margin-top:20px}
   .note{font-size:12px;color:var(--muted);margin-top:8px}
+  .topnav{max-width:860px;margin:0 auto;padding:16px 20px 0;display:flex;justify-content:space-between;align-items:center}
+  .topnav .brand{font-weight:700;color:var(--ink);text-decoration:none;font-size:18px}
+  .topnav a.link{color:var(--muted);text-decoration:none;font-size:14px;margin-left:18px}
+  .topnav a.link:hover{color:var(--accent)}
   @media(max-width:620px){.feat{grid-template-columns:1fr}h1{font-size:30px}}
 </style>
 </head>
 <body>
+<nav class="topnav">
+  <a class="brand" href="index.html">VoiceBrief</a>
+  <span><a class="link" href="blog/index.html">Blog</a></span>
+</nav>
 <header class="wrap">
   <h1>VoiceBrief</h1>
   <p class="sub">Clients send voice notes. You get a transcript, an action checklist, and a reply you can send in one click.</p>
@@ -117,7 +125,8 @@
 
 <footer class="wrap">
   VoiceBrief — a tiny tool for freelancers buried in client voice notes.<br>
-  Beta is free. Feedback? Just reply to whoever sent you the link.
+  Beta is free. Feedback? Just reply to whoever sent you the link.<br>
+  <a href="blog/index.html" style="color:var(--accent);text-decoration:none">Read the blog →</a>
 </footer>
 
 <script>
