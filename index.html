@@ -128,11 +128,63 @@
 </section>
 
 <section class="cta-section wrap" id="get">
-  <h2>Send your first audio — free</h2>
-  <p>Drop an audio file and we'll return the transcript + tasks + reply. No card, no catch.</p>
-  <a class="cta" href="mailto:3886136362@qq.com?subject=VoiceBrief%20free%20test">Email your audio →</a>
-  <p style="margin-top:18px;font-size:13px">Subject: <b>VoiceBrief free test</b> · We reply within a day during the free test.</p>
+  <h2>Drop your audio — get it back in minutes</h2>
+  <p>Upload a voice note or call recording (best under 30s). We return the transcript, a task list, and a reply draft.</p>
+  <div style="max-width:560px;margin:0 auto">
+    <input type="file" id="audioFile" accept="audio/*" style="display:block;margin:0 auto 16px;color:var(--muted);font-size:14px">
+    <button class="cta" id="processBtn" onclick="processAudio()">Process my audio →</button>
+    <p id="status" style="margin-top:16px;font-size:14px;color:var(--muted)"></p>
+  </div>
+  <div id="result" style="display:none;max-width:680px;margin:30px auto 0;text-align:left;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px">
+    <h3 style="color:var(--accent2);margin-bottom:6px">Transcript</h3>
+    <p id="rTranscript" style="color:var(--muted);font-size:14px;white-space:pre-wrap;margin-bottom:20px"></p>
+    <h3 style="color:var(--accent2);margin-bottom:6px">Action items</h3>
+    <ul id="rActions" style="color:var(--txt);font-size:14px;margin:0 0 20px 18px"></ul>
+    <h3 style="color:var(--accent2);margin-bottom:6px">Reply draft</h3>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <textarea id="rReply" readonly style="flex:1;min-height:120px;padding:14px;border:1px solid var(--line);
+        border-radius:12px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--txt);resize:vertical"></textarea>
+    </div>
+    <button onclick="copyReply()" style="margin-top:12px;background:var(--accent);color:#fff;border:none;
+      font-weight:700;padding:10px 20px;border-radius:10px;cursor:pointer">Copy reply</button>
+  </div>
 </section>
+
+<script>
+function copyReply(){
+  var t=document.getElementById('rReply'); t.select(); document.execCommand('copy');
+  var b=event.target; var old=b.textContent; b.textContent='Copied!';
+  setTimeout(function(){b.textContent=old;},1500);
+}
+async function processAudio(){
+  var fileInput=document.getElementById('audioFile');
+  var status=document.getElementById('status');
+  var btn=document.getElementById('processBtn');
+  var f=fileInput.files[0];
+  if(!f){status.textContent='Please choose an audio file first.';return;}
+  if(f.size>25*1024*1024){status.textContent='File too big (max 25MB).';return;}
+  btn.disabled=true; btn.textContent='Processing…'; status.textContent='Uploading and transcribing…';
+  try{
+    var b64=await new Promise(function(res,rej){
+      var r=new FileReader(); r.onload=function(){res(r.result.split(',')[1]);}; r.onerror=rej; r.readAsDataURL(f);
+    });
+    var resp=await fetch('/api/process',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({audio:b64})});
+    var data=await resp.json();
+    if(data.error){status.textContent='Error: '+data.error; btn.disabled=false; btn.textContent='Process my audio →'; return;}
+    document.getElementById('rTranscript').textContent=data.transcript||'';
+    var ul=document.getElementById('rActions'); ul.innerHTML='';
+    (data.action_items||[]).forEach(function(it){var li=document.createElement('li');li.textContent=it;ul.appendChild(li);});
+    document.getElementById('rReply').value=data.reply_draft||'';
+    document.getElementById('result').style.display='block';
+    status.textContent='Done.';
+  }catch(e){
+    status.textContent='Network error, try again.';
+  }
+  btn.disabled=false; btn.textContent='Process my audio →';
+}
+</script>
 
 <footer class="wrap">
   VoiceBrief — a pay-per-audio micro-service. Validating demand, Aug 2026.
