@@ -7,7 +7,7 @@
 
 无数据库、无后台定时、纯无状态，适合 Vercel 免费档（不绑卡）。
 部署：仓库根放 index.html，本文件放 api/process.py。
-环境变量：ZHIPU_API_KEY（默认代码内 fallback）、GROQ_KEY（可选，填了就走免费 whisper）。
+环境变量（部署时必填，不要写进代码）：ZHIPU_API_KEY（智谱出稿 key）、GROQ_KEY（Groq 免费 whisper 转写 key）。两者都缺失时返回 500 提示。
 """
 import json
 import os
@@ -16,7 +16,7 @@ import tempfile
 import urllib.request
 from http.server import BaseHTTPRequestHandler
 
-ZHIPU_KEY = os.environ.get('ZHIPU_API_KEY', '10f33f5db824408c9ddd67c67add80ee.N81lh5drNQYeuPAT')
+ZHIPU_KEY = os.environ.get('ZHIPU_API_KEY', '')
 GROQ_KEY = os.environ.get('GROQ_KEY', '')
 CHAT_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 ASR_URL = 'https://open.bigmodel.cn/api/paas/v4/audio/transcriptions'
@@ -50,7 +50,8 @@ def transcribe(path):
         body, boundary = _multipart({'model': 'whisper-large-v3'}, ('audio.webm', data))
         req = urllib.request.Request(GROQ_URL, data=body,
                                      headers={'Authorization': 'Bearer ' + GROQ_KEY,
-                                              'Content-Type': 'multipart/form-data; boundary=' + boundary})
+                                              'Content-Type': 'multipart/form-data; boundary=' + boundary,
+                                              'User-Agent': 'curl/8.0'})
         with urllib.request.urlopen(req, timeout=25) as r:
             return json.loads(r.read().decode('utf-8')).get('text', '')
     body, boundary = _multipart({'model': 'glm-asr-2512', 'stream': 'false'}, ('audio', data))
