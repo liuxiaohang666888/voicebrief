@@ -62,7 +62,7 @@
 <section class="wrap">
   <div class="card">
     <h2>Try it now</h2>
-    <p style="color:var(--muted);margin-top:0">Upload a client voice message or short call clip (≤ 30 seconds works best). Everything processes in your browser.</p>
+    <p style="color:var(--muted);margin-top:0">Upload a client voice message or short call clip (≤ 30 seconds works best). A free private backend does the transcription — no sign-up for visitors.</p>
     <label class="drop" id="drop">
       <input type="file" id="file" accept="audio/*" />
       <div><b>Click to choose an audio file</b><br><span style="color:var(--muted);font-size:13px">or drag &amp; drop here · mp3 / m4a / wav / webm</span></div>
@@ -73,9 +73,9 @@
     </div>
     <div class="status" id="status"></div>
 
-    <label class="fld">Your Groq API key (free from groq.com — paste once, saved in this browser)</label>
-    <input type="password" id="key" placeholder="gsk_..." />
-    <p class="note">The key never leaves your browser and is sent only to Groq. A static site can't hide a secret, so you bring your own (free tier is plenty). Before charging users, this moves to a small server.</p>
+    <label class="fld">VoiceBrief backend URL (paste once after deploy, saved in this browser)</label>
+    <input type="text" id="api" placeholder="https://voicebrief.your-subdomain.workers.dev/process" />
+    <p class="note">This points to the free backend that hides the AI key. Visitors don't need any key — only you set this once. If you host your own copy, change it here.</p>
 
     <div class="result" id="result" style="display:none">
       <div class="block">
@@ -100,7 +100,7 @@
   <div class="feat">
     <div class="card"><h3>Stop decoding voice</h3><p style="color:var(--muted);margin:0">No more replaying a 2-minute ramble three times to figure out what they actually wanted.</p></div>
     <div class="card"><h3>Reply in your tone</h3><p style="color:var(--muted);margin:0">Get a draft that sounds like you — confirms the tasks and asks only what's missing.</p></div>
-    <div class="card"><h3>Private by default</h3><p style="color:var(--muted);margin:0">Audio is sent straight to the transcription API from your browser. No mailbox, no middleman.</p></div>
+    <div class="card"><h3>Private by default</h3><p style="color:var(--muted);margin:0">Audio goes to a private backend that calls the transcription API with a hidden key. No mailbox, no middleman, nothing stored.</p></div>
     <div class="card"><h3>Seconds, not hours</h3><p style="color:var(--muted);margin:0">Upload, click, done. Built for the between-meetings gap, not end-of-day batching.</p></div>
   </div>
 </section>
@@ -111,12 +111,12 @@
 </footer>
 
 <script>
-// Static site can't hide a secret, so the user provides their own Groq key.
-// Remember it in this browser so they only paste once.
-const keyInput = document.getElementById('key');
-const SAVED = localStorage.getItem('vb_groq_key');
-if (SAVED) keyInput.value = SAVED;
-keyInput.addEventListener('change', () => localStorage.setItem('vb_groq_key', keyInput.value.trim()));
+// The backend (Cloudflare Worker) holds the AI key. Visitor just pastes the
+// backend URL once; it's remembered in this browser.
+const apiInput = document.getElementById('api');
+const SAVED_API = localStorage.getItem('vb_api');
+if (SAVED_API) apiInput.value = SAVED_API;
+apiInput.addEventListener('change', () => localStorage.setItem('vb_api', apiInput.value.trim()));
 
 const fileInput = document.getElementById('file');
 const goBtn = document.getElementById('go');
@@ -137,49 +137,37 @@ drop.addEventListener('drop', e => {
 
 function setStatus(msg, isErr){ statusEl.textContent = msg; statusEl.className = 'status' + (isErr?' err':''); }
 
-async function transcribe(key, file){
-  const fd = new FormData();
-  fd.append('model','whisper-large-v3');
-  fd.append('file', file);
-  const r = await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
-    method:'POST', headers:{Authorization:'Bearer '+key}, body:fd
+async function readFileAsDataURL(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload = () => res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
   });
-  if(!r.ok){ const t=await r.text(); throw new Error('Transcription failed: '+t.slice(0,200)); }
-  const j = await r.json();
-  return j.text || '';
 }
 
-async function draft(key, transcript){
-  const sys = "You are an assistant for freelancers. Given a transcript of a client voice message, return strict JSON with exactly two keys: 'action_items' (an array of short strings, each a concrete task, include any deadline mentioned) and 'reply_draft' (a short, natural professional reply the freelancer can send — confirm the tasks, friendly tone, and ask only the clarifying question that is genuinely missing).";
-  const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+async function processAudio(apiUrl, dataURL, mime){
+  const r = await fetch(apiUrl, {
     method:'POST',
-    headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model:'llama-3.3-70b-versatile',
-      response_format:{type:'json_object'},
-      messages:[
-        {role:'system',content:sys},
-        {role:'user',content:transcript}
-      ]
-    })
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ audio: dataURL, mime })
   });
-  if(!r.ok){ const t=await r.text(); throw new Error('Draft failed: '+t.slice(0,200)); }
-  const j = await r.json();
-  return JSON.parse(j.choices[0].message.content);
+  if(!r.ok){ const t=await r.text(); throw new Error('Backend error: '+t.slice(0,200)); }
+  return await r.json();
 }
 
 goBtn.addEventListener('click', async () => {
-  const key = document.getElementById('key').value.trim();
-  if(!key){ setStatus('Please enter a Groq API key.', true); return; }
+  const apiUrl = (document.getElementById('api').value.trim() || '').replace(/\/$/, '') + '/process';
+  if(!document.getElementById('api').value.trim()){ setStatus('Paste the VoiceBrief backend URL first (see the note above).', true); return; }
   if(!chosenFile){ setStatus('Choose an audio file first.', true); return; }
   goBtn.disabled = true;
   try{
-    setStatus('Transcribing audio…');
-    const tx = await transcribe(key, chosenFile);
-    if(!tx.trim()){ setStatus('No speech detected. Try a clearer clip.', true); goBtn.disabled=false; return; }
-    document.getElementById('transcript').textContent = tx;
-    setStatus('Drafting your reply…');
-    const out = await draft(key, tx);
+    setStatus('Reading audio…');
+    const dataURL = await readFileAsDataURL(chosenFile);
+    setStatus('Transcribing + drafting…');
+    const out = await processAudio(apiUrl, dataURL, chosenFile.type || 'audio/webm');
+    if(!out.transcript || !out.transcript.trim()){ setStatus('No speech detected. Try a clearer clip.', true); goBtn.disabled=false; return; }
+    document.getElementById('transcript').textContent = out.transcript;
     const ul = document.getElementById('actions'); ul.innerHTML='';
     (out.action_items||[]).forEach(it=>{ const li=document.createElement('li'); li.textContent=it; ul.appendChild(li); });
     document.getElementById('reply').textContent = out.reply_draft || '';
