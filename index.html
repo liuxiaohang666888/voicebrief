@@ -115,7 +115,12 @@
 // backend URL once; it's remembered in this browser.
 const apiInput = document.getElementById('api');
 const SAVED_API = localStorage.getItem('vb_api');
-if (SAVED_API) apiInput.value = SAVED_API;
+if (SAVED_API) {
+  apiInput.value = SAVED_API;
+} else {
+  // Pre-filled: your deployed Worker backend
+  apiInput.value = 'https://voicebrief.3886136362.workers.dev';
+}
 apiInput.addEventListener('change', () => localStorage.setItem('vb_api', apiInput.value.trim()));
 
 const fileInput = document.getElementById('file');
