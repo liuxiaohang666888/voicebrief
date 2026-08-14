@@ -1,6 +1,9 @@
 import urllib.request, json, time, urllib.parse
+from datetime import datetime, timezone
 
 PROXY = "http://127.0.0.1:3456"
+NOW = datetime.now(timezone.utc)
+MAX_AGE_DAYS = 45
 
 def post(path, data, params=None):
     url = PROXY + path
@@ -27,37 +30,55 @@ def eval_js(target, js):
     except:
         return res
 
-JS = """JSON.stringify([...document.querySelectorAll('article')].slice(0,18).map(a=>({h:(a.querySelector('a[href*="/status/"]')?a.querySelector('a[href*="/status/"]').getAttribute('href'):''),t:a.innerText.slice(0,420)})))"""
+# 提取：链接 + 正文 + ISO 时间戳（X 的 <time datetime> 属性）
+JS = """JSON.stringify([...document.querySelectorAll('article')].slice(0,20).map(a=>{
+  const st=a.querySelector('a[href*="/status/"]');
+  const te=a.querySelector('time');
+  return {h:st?st.getAttribute('href'):'', t:a.innerText.slice(0,420),
+          d:te?te.getAttribute('datetime'):''};
+}))"""
 
 KEYWORDS = [
     "client voice note",
     "freelancer voice message",
     "virtual assistant voice note",
-    "transcribe client voice",
     "client sends voice note",
     "voice notes from clients",
+    "designer client voice note",
 ]
 
 SPAM = ['hire me', 'dm me', 'link in bio', 'book a call', 'book a free', 'my services',
         'i help', 'we help', 'agency', 'virtual assistant services', 'click the link',
-        'sign up', 'join my', 'enroll', 'course', 'coaching', 'let me handle', 'i offer']
+        'sign up', 'join my', 'enroll', 'course', 'coaching', 'let me handle', 'i offer',
+        'krispcall', 'nobl', 'locul', 'use my']
 
 EMOTION = ['her voice', 'his voice', 'i miss', 'miss her', 'miss him', 'boyfriend',
-           'girlfriend', 'crush', 'my ex', 'ex ', 'breakup', 'heart', 'love you']
+           'girlfriend', 'crush', 'my ex', 'ex ', 'breakup', 'heart', 'love you',
+           'drowning in memories', 'drown in memories']
 
 WORK = ['client', 'freelance', 'virtual assistant', 'my boss', 'customer', 'inbox',
-        'business', 'bookkeep', 'real estate', 'my coach', 'admin']
+        'business', 'bookkeep', 'real estate', 'my coach', 'admin', 'designer', 'brand']
 
 PAIN = ['exhaust', 'tired', 'hate', 'drown', 'too many', 'overwhelm', 'struggl',
         'annoy', 'frustrat', "can't keep up", 'falling behind', 'need to transcrib',
         'how to transcrib', 'what tool', 'recommend', 'help me', 'any tool',
         'so many', 'pile up', 'behind on', 'spend hours', 'waste time', 'listen to',
-        're-listen', 'relisten', 'transcrib']
+        're-listen', 'relisten', 'transcrib', 'simple', 'just need something']
+
+def days_old(d_str):
+    if not d_str:
+        return 999
+    try:
+        dt = datetime.fromisoformat(d_str.replace('Z', '+00:00'))
+        return (NOW - dt).days
+    except:
+        return 999
 
 all_tweets = []
 seen = set()
 for kw in KEYWORDS:
-    url = "https://x.com/search?q=" + urllib.parse.quote(kw) + "&f=top"
+    # 用 f=live（最新排序）而不是 f=top（历史高赞，会混入老帖）
+    url = "https://x.com/search?q=" + urllib.parse.quote(kw) + "&f=live"
     tid = new_tab(url)
     if not tid:
         continue
@@ -70,8 +91,12 @@ for kw in KEYWORDS:
     for a in arr:
         h = a.get('h', '')
         t = a.get('t', '')
+        d = a.get('d', '')
         if not h or h in seen:
             continue
+        age = days_old(d)
+        if age > MAX_AGE_DAYS:
+            continue  # 过滤超过 45 天的老帖
         seen.add(h)
         tl = t.lower()
         has_voice = any(w in tl for w in ['voice', 'audio', 'voicemail'])
@@ -84,21 +109,21 @@ for kw in KEYWORDS:
         if not any(w in tl for w in WORK):
             continue
         strong = any(p in tl for p in PAIN)
-        all_tweets.append({'h': h, 't': t, 'strong': strong, 'kw': kw})
+        all_tweets.append({'h': h, 't': t, 'strong': strong, 'kw': kw, 'age': age})
     time.sleep(1)
 
-all_tweets.sort(key=lambda x: not x['strong'])
+all_tweets.sort(key=lambda x: (not x['strong'], x['age']))
 
 lines = ["# X 痛点帖回复清单（AI 抓取，你手动回）", "",
          "抓取时间：" + time.strftime('%Y-%m-%d %H:%M'),
-         "抓到相关推文（工作场景+语音痛点，已去重过滤）：%d 条" % len(all_tweets),
+         "只抓最近 %d 天内、工作场景+语音痛点的推文（已去重过滤）：%d 条" % (MAX_AGE_DAYS, len(all_tweets)),
          "其中强痛点（抱怨/问工具）：%d 条" % sum(1 for x in all_tweets if x['strong']),
          "", "操作：点链接 → 登录你 X → 粘贴对应话术 → 发。回完喊【下一批】我再来一轮。", "", "---", ""]
 
 for i, p in enumerate(all_tweets, 1):
     link = "https://x.com" + p['h']
     tag = "【强痛点】" if p['strong'] else "【相关】"
-    lines.append("## %d. %s %s" % (i, tag, link))
+    lines.append("## %d. %s %s  (约 %d 天前)" % (i, tag, link, p['age']))
     lines.append("**对方原话（节选）：** " + p['t'][:320])
     lines.append("")
     lines.append("**复制即用回复（按对方语气选一条）：**")
