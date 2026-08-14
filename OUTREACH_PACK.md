@@ -8,12 +8,10 @@
 
 ## 一、去哪找 VA（直接复制网址打开）
 
-1. **Upwork 搜 VA**（发消息要对方开过 Upwork Messages，免费）
-   - https://www.upwork.com/nx/search/profiles?q=virtual%20assistant
-   - 点进个人档 → 左上 "Message" 按钮发私信
-2. **LinkedIn 搜 VA**（用网页版，搜 "Virtual Assistant"，过滤地点用 US/UK/Canada/Australia）
+1. ~~Upwork 搜 VA~~ **（不可用，已证伪）**：你是 freelancer 账号，Upwork 不允许 freelancer 之间互相私信卖东西，平台也不提供这入口、硬搞会被封。别走这条。
+2. **LinkedIn 搜 VA（主渠道，推荐）**（用网页版，搜 "Virtual Assistant"，过滤地点用 US/UK/Canada/Australia）
    - https://www.linkedin.com/search/results/people/?keywords=virtual%20assistant
-   - 点进主页 → "Message"（需 1st 度或开放档案）
+   - 点进主页 → 左上 "Message" 按钮发私信（需互加好友或对方开放档案；开放档案直接能发）
 3. **Facebook VA 群**（搜 "Virtual Assistant 🌍"、"VA Community"、"Online Business Managers"），进群后挑活跃成员私信
 4. **Reddit** r/VirtualAssistant（注意：这里也受 karma 影响，但**发帖/评论**受限；可先养号，暂不作为主渠道）
 
@@ -61,7 +59,7 @@ similar or am I the only one paranoid about this?
 
 | 日期 | 平台 | 对方用户名/主页 | 话术 | 对方反应 | 是否给了链接 | 结果 |
 |------|------|----------------|------|----------|--------------|------|
-| 8/14 | Upwork | @xxx | A | 回：me too | 否 | 聊中 |
+| 8/14 | LinkedIn | @xxx | A | 回：me too | 否 | 聊中 |
 |      |        |                |      |          |              |      |
 
 **判定"有人要"的信号**：对方主动问"这工具叫什么/多少钱/链接发我" → 这就是真需求，引导去
